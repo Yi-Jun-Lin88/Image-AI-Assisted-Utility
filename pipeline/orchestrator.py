@@ -67,8 +67,11 @@ def run_image_pipeline(
     try:
         classifications = classify_fn(analysis_image)
     except Exception as exc:
-        classifications = [ClassificationResult(label="image", score=1.0)]
+        classifications = [ClassificationResult(label="image", score=1.0, used_fallback=True)]
         errors.append(f"Image classification failed: {exc}")
+    else:
+        if any(item.used_fallback for item in classifications):
+            errors.append("Image classification used fallback output.")
 
     return PipelineResult(
         original=original,

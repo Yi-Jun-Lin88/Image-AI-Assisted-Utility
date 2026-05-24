@@ -12,7 +12,7 @@ CLASSIFICATION_MODEL_ID = "google/vit-base-patch16-224"
 
 
 def fallback_classification() -> ClassificationResult:
-    return ClassificationResult(label="image", score=1.0)
+    return ClassificationResult(label="image", score=1.0, used_fallback=True)
 
 
 @lru_cache(maxsize=1)

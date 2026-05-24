@@ -144,4 +144,26 @@ def test_run_image_pipeline_preserves_image_and_caption_when_classification_fail
     assert result.bokeh is not None
     assert result.caption.used_fallback is True
     assert result.classifications[0].label == "image"
+    assert result.classifications[0].used_fallback is True
     assert "Image classification failed: classification failed" in result.errors
+
+
+def test_run_image_pipeline_records_default_classification_fallback() -> None:
+    image = Image.new("RGB", (16, 12), color=(20, 40, 60))
+
+    def fake_depth(input_image: Image.Image) -> tuple[np.ndarray, Image.Image]:
+        depth = np.zeros((input_image.height, input_image.width), dtype=np.float32)
+        depth[3:9, 4:12] = 1.0
+        return depth, depth_array_to_image(depth)
+
+    def fallback_classify(input_image: Image.Image) -> list[ClassificationResult]:
+        return [ClassificationResult(label="image", score=1.0, used_fallback=True)]
+
+    result = run_image_pipeline(
+        image,
+        depth_fn=fake_depth,
+        classify_fn=fallback_classify,
+    )
+
+    assert result.classifications[0].used_fallback is True
+    assert "Image classification used fallback output." in result.errors

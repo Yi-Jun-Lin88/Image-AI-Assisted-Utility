@@ -27,6 +27,7 @@ def test_fallback_classification_returns_image_label() -> None:
 
     assert result.label == "image"
     assert result.score == 1.0
+    assert result.used_fallback is True
 
 
 def test_classify_image_falls_back_when_model_load_fails(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -41,6 +42,7 @@ def test_classify_image_falls_back_when_model_load_fails(monkeypatch: pytest.Mon
     assert len(result) == 1
     assert result[0].label == "image"
     assert result[0].score == 1.0
+    assert result[0].used_fallback is True
 
 
 def test_classify_image_falls_back_on_malformed_output(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -56,3 +58,4 @@ def test_classify_image_falls_back_on_malformed_output(monkeypatch: pytest.Monke
     assert len(result) == 1
     assert result[0].label == "image"
     assert result[0].score == 1.0
+    assert result[0].used_fallback is True

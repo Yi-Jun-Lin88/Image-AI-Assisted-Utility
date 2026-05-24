@@ -18,6 +18,7 @@ class CaptionResult:
 class ClassificationResult:
     label: str
     score: float
+    used_fallback: bool = False
 
 
 @dataclass(frozen=True)

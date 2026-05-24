@@ -91,7 +91,11 @@ def show_caption(result: PipelineResult) -> None:
 def show_classification(result: PipelineResult) -> None:
     st.subheader("Classification")
     rows = [
-        {"Label": item.label, "Score": f"{item.score:.2%}"}
+        {
+            "Label": item.label,
+            "Score": f"{item.score:.2%}",
+            "Source": "fallback" if item.used_fallback else "model",
+        }
         for item in result.classifications
     ]
     if rows:
@@ -117,10 +121,12 @@ image_source = st.sidebar.radio(
     options=["Sample image", "Upload image"],
 )
 api_key = st.sidebar.text_input(
-    "Vision API key",
+    "Vision API key (future provider placeholder)",
     value=os.getenv("VISION_API_KEY", ""),
     type="password",
+    help="The MVP uses deterministic fallback captioning. This field marks the future Vision LLM integration point.",
 )
+st.sidebar.caption("Captioning currently uses MVP fallback text even when a key is entered.")
 st.sidebar.info(
     "MVP boundary: this desktop demo uses HuggingFace transformers instead of the "
     "thesis CoreML package. It supports a single-image workflow with automatic "
