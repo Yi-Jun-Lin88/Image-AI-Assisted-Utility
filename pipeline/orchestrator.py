@@ -22,6 +22,8 @@ def run_image_pipeline(
     *,
     api_key: str | None = None,
     caption_provider: str = "fallback",
+    subject_strength: int = 60,
+    bokeh_strength: int = 12,
     depth_fn: DepthFn = estimate_depth,
     classify_fn: ClassifyFn = classify_image,
 ) -> PipelineResult:
@@ -40,7 +42,10 @@ def run_image_pipeline(
 
     if depth_array is not None:
         try:
-            foreground_mask = build_foreground_mask(depth_array)
+            foreground_mask = build_foreground_mask(
+                depth_array,
+                subject_strength=subject_strength,
+            )
         except Exception as exc:
             errors.append(f"Depth-aware image processing failed: {exc}")
             foreground_mask = None
@@ -52,7 +57,12 @@ def run_image_pipeline(
                 errors.append(f"Subject extraction failed: {exc}")
 
             try:
-                bokeh = apply_depth_bokeh(original, depth_array, foreground_mask)
+                bokeh = apply_depth_bokeh(
+                    original,
+                    depth_array,
+                    foreground_mask,
+                    blur_radius=bokeh_strength,
+                )
             except Exception as exc:
                 errors.append(f"Bokeh generation failed: {exc}")
 

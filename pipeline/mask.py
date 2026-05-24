@@ -40,10 +40,11 @@ def compute_scharr_gradient(depth: np.ndarray) -> np.ndarray:
     return normalize_depth(magnitude)
 
 
-def build_foreground_mask(depth: np.ndarray) -> np.ndarray:
+def build_foreground_mask(depth: np.ndarray, subject_strength: int = 60) -> np.ndarray:
     normalized = normalize_depth(depth)
+    threshold_percentile = float(np.clip(subject_strength, 35, 80))
 
-    base_threshold = np.percentile(normalized, 60)
+    base_threshold = np.percentile(normalized, threshold_percentile)
     base_mask = normalized > base_threshold
 
     gradient = compute_scharr_gradient(normalized)

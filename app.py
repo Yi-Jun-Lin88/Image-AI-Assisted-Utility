@@ -101,13 +101,14 @@ image_source = st.sidebar.radio(
     "Image source",
     options=["Sample image", "Upload image"],
 )
-api_key = st.sidebar.text_input(
-    "Vision API key (future provider placeholder)",
-    value=os.getenv("VISION_API_KEY", ""),
-    type="password",
-    help="The MVP uses deterministic fallback captioning. This field marks the future Vision LLM integration point.",
-)
-st.sidebar.caption("Captioning currently uses MVP fallback text even when a key is entered.")
+with st.sidebar.expander("Advanced", expanded=False):
+    api_key = st.text_input(
+        "Vision API key (future provider placeholder)",
+        value=os.getenv("VISION_API_KEY", ""),
+        type="password",
+        help="The MVP uses deterministic fallback captioning. This field marks the future Vision LLM integration point.",
+    )
+    st.caption("Vision captioning is not enabled in this MVP. Captioning currently uses fallback text even when a key is entered.")
 st.sidebar.info(
     "MVP boundary: this desktop demo uses HuggingFace transformers instead of the "
     "thesis CoreML package. It supports a single-image workflow with automatic "
@@ -128,15 +129,38 @@ with preview_columns[0]:
     st.subheader("Input Preview")
     st.image(input_image, use_container_width=True)
 
+control_columns = st.columns(2)
+with control_columns[0]:
+    subject_strength = st.slider(
+        "Subject strength",
+        min_value=35,
+        max_value=80,
+        value=60,
+        help="Higher values keep a tighter foreground subject.",
+    )
+with control_columns[1]:
+    bokeh_strength = st.slider(
+        "Bokeh strength",
+        min_value=2,
+        max_value=24,
+        value=12,
+        help="Higher values create stronger background blur.",
+    )
+
 image_fingerprint = sha256(image_to_png_bytes(input_image)).hexdigest()
-run_key = f"{image_source}:{image_fingerprint}:{bool(api_key)}"
+run_key = f"{image_source}:{image_fingerprint}:{bool(api_key)}:{subject_strength}:{bokeh_strength}"
 last_key = st.session_state.get("last_run_key")
 result: PipelineResult | None = st.session_state.get("last_result")
 
 run_requested = st.button("Run pipeline", type="primary", use_container_width=True)
 if run_requested:
     with st.spinner("Running image pipeline..."):
-        result = run_image_pipeline(input_image, api_key=api_key or None)
+        result = run_image_pipeline(
+            input_image,
+            api_key=api_key or None,
+            subject_strength=subject_strength,
+            bokeh_strength=bokeh_strength,
+        )
     st.session_state["last_result"] = result
     st.session_state["last_run_key"] = run_key
     last_key = run_key

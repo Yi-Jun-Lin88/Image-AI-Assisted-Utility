@@ -40,6 +40,15 @@ def test_build_foreground_mask_preserves_small_foreground_region() -> None:
     assert set(np.unique(mask)).issubset({0, 255})
 
 
+def test_build_foreground_mask_subject_strength_controls_mask_size() -> None:
+    depth = np.tile(np.linspace(0.0, 1.0, 30, dtype=np.float32), (30, 1))
+
+    loose_mask = build_foreground_mask(depth, subject_strength=35)
+    tight_mask = build_foreground_mask(depth, subject_strength=80)
+
+    assert loose_mask.sum() > tight_mask.sum()
+
+
 def test_extract_subject_uses_white_background_and_keeps_foreground_pixels() -> None:
     image = Image.new("RGB", (4, 4), color=(20, 40, 60))
     mask = np.zeros((4, 4), dtype=np.uint8)

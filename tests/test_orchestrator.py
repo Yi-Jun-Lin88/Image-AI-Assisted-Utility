@@ -87,7 +87,12 @@ def test_run_image_pipeline_preserves_subject_when_bokeh_fails(monkeypatch) -> N
         depth[3:9, 4:12] = 1.0
         return depth, depth_array_to_image(depth)
 
-    def fail_bokeh(input_image: Image.Image, depth: np.ndarray, mask: np.ndarray) -> Image.Image:
+    def fail_bokeh(
+        input_image: Image.Image,
+        depth: np.ndarray,
+        mask: np.ndarray,
+        blur_radius: int = 12,
+    ) -> Image.Image:
         raise RuntimeError("bokeh failed")
 
     monkeypatch.setattr("pipeline.orchestrator.apply_depth_bokeh", fail_bokeh)
@@ -167,3 +172,38 @@ def test_run_image_pipeline_records_default_classification_fallback() -> None:
 
     assert result.classifications[0].used_fallback is True
     assert "Image classification used fallback output." in result.errors
+
+
+def test_run_image_pipeline_passes_interaction_controls(monkeypatch) -> None:
+    image = Image.new("RGB", (16, 12), color=(20, 40, 60))
+    observed: dict[str, int] = {}
+
+    def fake_depth(input_image: Image.Image) -> tuple[np.ndarray, Image.Image]:
+        depth = np.zeros((input_image.height, input_image.width), dtype=np.float32)
+        depth[3:9, 4:12] = 1.0
+        return depth, depth_array_to_image(depth)
+
+    def fake_build_mask(depth: np.ndarray, subject_strength: int = 60) -> np.ndarray:
+        observed["subject_strength"] = subject_strength
+        return np.ones(depth.shape, dtype=np.uint8) * 255
+
+    def fake_bokeh(
+        input_image: Image.Image,
+        depth: np.ndarray,
+        mask: np.ndarray,
+        blur_radius: int = 12,
+    ) -> Image.Image:
+        observed["bokeh_strength"] = blur_radius
+        return input_image.copy()
+
+    monkeypatch.setattr("pipeline.orchestrator.build_foreground_mask", fake_build_mask)
+    monkeypatch.setattr("pipeline.orchestrator.apply_depth_bokeh", fake_bokeh)
+
+    run_image_pipeline(
+        image,
+        depth_fn=fake_depth,
+        subject_strength=72,
+        bokeh_strength=18,
+    )
+
+    assert observed == {"subject_strength": 72, "bokeh_strength": 18}
