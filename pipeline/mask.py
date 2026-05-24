@@ -19,7 +19,7 @@ def _binary_mask_array(mask: np.ndarray) -> np.ndarray:
             return (finite >= 0.5).astype(np.uint8) * 255
         return (finite >= 127.5).astype(np.uint8) * 255
 
-    return (values.astype(np.uint8) >= 128).astype(np.uint8) * 255
+    return (values >= 128).astype(np.uint8) * 255
 
 
 def _morphology_kernel(shape: tuple[int, int]) -> np.ndarray:
