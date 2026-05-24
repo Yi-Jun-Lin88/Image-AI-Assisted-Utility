@@ -1,5 +1,7 @@
 # Image AI Utility
 
+**Live Demo:** [Open the Streamlit app](https://image-ai-assisted-utility-f87dyujzdggtbfwbyrvvdd.streamlit.app/)
+
 Image AI Utility is a Streamlit demo for AI-Assisted PM interviews. It productizes the thesis direction **"Image Segmentation Based on Depth Estimation"** into a shareable single-image workflow that shows how depth can become a reusable product primitive for image editing and image understanding.
 
 ## What It Does

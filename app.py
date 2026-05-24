@@ -3,9 +3,10 @@ from __future__ import annotations
 import os
 from io import BytesIO
 from hashlib import sha256
+from pathlib import Path
 
 import streamlit as st
-from PIL import Image, ImageDraw
+from PIL import Image
 
 from pipeline.image_io import image_to_png_bytes
 from pipeline.orchestrator import run_image_pipeline
@@ -14,10 +15,12 @@ from pipeline.types import PipelineResult
 
 st.set_page_config(page_title="Image AI Utility", layout="wide")
 
+SAMPLE_IMAGE_PATH = Path(__file__).parent / "sample_data" / "sample.jpg"
+
 
 def load_uploaded_image() -> Image.Image | None:
-    uploaded_file = st.sidebar.file_uploader(
-        "Image file",
+    uploaded_file = st.file_uploader(
+        "Upload a PNG, JPG, JPEG, or WEBP image",
         type=["png", "jpg", "jpeg", "webp"],
     )
     if uploaded_file is None:
@@ -27,34 +30,12 @@ def load_uploaded_image() -> Image.Image | None:
         data = BytesIO(uploaded_file.getvalue())
         return Image.open(data).copy()
     except Exception as exc:
-        st.sidebar.error(f"Could not read image: {exc}")
+        st.error(f"Could not read image: {exc}")
         return None
 
 
 def load_sample_image() -> Image.Image:
-    image = Image.new("RGB", (900, 600), color=(168, 202, 224))
-    draw = ImageDraw.Draw(image)
-
-    for y in range(600):
-        if y < 330:
-            blue = 224 - int(y * 0.18)
-            draw.line([(0, y), (900, y)], fill=(168, 202, blue))
-        else:
-            green = 138 - int((y - 330) * 0.08)
-            draw.line([(0, y), (900, y)], fill=(74, max(96, green), 88))
-
-    draw.ellipse((90, 72, 210, 192), fill=(242, 206, 96))
-    draw.rectangle((0, 330, 900, 600), fill=(78, 126, 92))
-    draw.ellipse((280, 190, 620, 560), fill=(68, 82, 106))
-    draw.ellipse((340, 100, 560, 320), fill=(225, 190, 154))
-    draw.rectangle((392, 320, 508, 530), fill=(188, 92, 86))
-    draw.polygon([(392, 348), (260, 470), (330, 505), (425, 392)], fill=(188, 92, 86))
-    draw.polygon([(508, 348), (640, 470), (570, 505), (475, 392)], fill=(188, 92, 86))
-    draw.ellipse((392, 162, 430, 200), fill=(42, 44, 52))
-    draw.ellipse((470, 162, 508, 200), fill=(42, 44, 52))
-    draw.arc((390, 178, 510, 258), start=20, end=160, fill=(90, 52, 50), width=6)
-
-    return image
+    return Image.open(SAMPLE_IMAGE_PATH).convert("RGB")
 
 
 def show_image_slot(title: str, image: Image.Image | None, *, caption: str | None = None) -> None:
@@ -134,9 +115,10 @@ st.sidebar.info(
 )
 
 if image_source == "Upload image":
+    st.subheader("Upload Image")
     input_image = load_uploaded_image()
     if input_image is None:
-        st.warning("Upload a PNG, JPG, JPEG, or WEBP image to start.")
+        st.info("Choose an image file above to start.")
         st.stop()
 else:
     input_image = load_sample_image()
