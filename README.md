@@ -6,7 +6,7 @@ Image AI Utility is a Streamlit demo for AI-Assisted PM interviews. It productiz
 
 ## What It Does
 
-- Accepts either a built-in sample image or an uploaded PNG, JPG, JPEG, or WEBP image.
+- Accepts either a built-in sample image or an uploaded PNG, JPG, JPEG, WEBP, HEIF, or HEIC image.
 - Estimates a depth map with `depth-anything/Depth-Anything-V2-Small-hf`.
 - Builds a depth-aware subject extraction using automatic depth thresholding plus Scharr gradient refinement.
 - Generates a portrait bokeh output by preserving the foreground subject and blurring background depth layers.

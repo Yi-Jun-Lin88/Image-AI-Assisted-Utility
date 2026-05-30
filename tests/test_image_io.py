@@ -1,6 +1,16 @@
 from PIL import Image
 
-from pipeline.image_io import ensure_rgb, image_to_png_bytes, resize_for_inference
+from pipeline.image_io import (
+    SUPPORTED_UPLOAD_TYPES,
+    ensure_rgb,
+    image_to_png_bytes,
+    resize_for_inference,
+)
+
+
+def test_supported_upload_types_include_heif_formats() -> None:
+    assert "heif" in SUPPORTED_UPLOAD_TYPES
+    assert "heic" in SUPPORTED_UPLOAD_TYPES
 
 
 def test_ensure_rgb_converts_alpha_image() -> None:

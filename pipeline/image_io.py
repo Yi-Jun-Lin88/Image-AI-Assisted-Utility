@@ -4,6 +4,16 @@ from io import BytesIO
 
 from PIL import Image
 
+SUPPORTED_UPLOAD_TYPES = ["png", "jpg", "jpeg", "webp", "heif", "heic"]
+
+
+def register_supported_image_openers() -> None:
+    try:
+        from pillow_heif import register_heif_opener
+    except ImportError:
+        return
+    register_heif_opener()
+
 
 def ensure_rgb(image: Image.Image) -> Image.Image:
     if image.mode == "RGB":

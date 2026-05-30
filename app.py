@@ -8,7 +8,11 @@ from pathlib import Path
 import streamlit as st
 from PIL import Image
 
-from pipeline.image_io import image_to_png_bytes
+from pipeline.image_io import (
+    SUPPORTED_UPLOAD_TYPES,
+    image_to_png_bytes,
+    register_supported_image_openers,
+)
 from pipeline.orchestrator import run_image_pipeline
 from pipeline.types import PipelineResult
 
@@ -24,12 +28,13 @@ PROCESSING_MODES = {
     "Fast preview": 512,
     "Refined output": 1024,
 }
+register_supported_image_openers()
 
 
 def load_uploaded_image() -> Image.Image | None:
     uploaded_file = st.file_uploader(
-        "Upload a PNG, JPG, JPEG, or WEBP image",
-        type=["png", "jpg", "jpeg", "webp"],
+        "Upload a PNG, JPG, JPEG, WEBP, HEIF, or HEIC image",
+        type=SUPPORTED_UPLOAD_TYPES,
     )
     if uploaded_file is None:
         return None
@@ -204,11 +209,8 @@ with image_row_two[1]:
     show_image_slot("Portrait Bokeh", result.bokeh)
     show_download("Download portrait bokeh", result.bokeh, "portrait-bokeh.png")
 
-text_columns = st.columns(2)
-with text_columns[0]:
-    show_caption(result)
-with text_columns[1]:
-    show_classification(result)
+show_caption(result)
+show_classification(result)
 
 show_processing_notes(result.errors)
 
