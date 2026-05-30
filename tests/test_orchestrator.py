@@ -207,3 +207,22 @@ def test_run_image_pipeline_passes_interaction_controls(monkeypatch) -> None:
     )
 
     assert observed == {"subject_strength": 72, "bokeh_strength": 18}
+
+
+def test_run_image_pipeline_uses_max_side_for_inference_resize() -> None:
+    image = Image.new("RGB", (1200, 600), color=(20, 40, 60))
+    observed: dict[str, tuple[int, int]] = {}
+
+    def fake_depth(input_image: Image.Image) -> tuple[np.ndarray, Image.Image]:
+        observed["depth_input_size"] = input_image.size
+        depth = np.zeros((input_image.height, input_image.width), dtype=np.float32)
+        depth[:, input_image.width // 2 :] = 1.0
+        return depth, depth_array_to_image(depth)
+
+    run_image_pipeline(
+        image,
+        depth_fn=fake_depth,
+        max_side=300,
+    )
+
+    assert observed["depth_input_size"] == (300, 150)

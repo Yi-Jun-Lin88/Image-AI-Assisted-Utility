@@ -10,6 +10,7 @@ Image AI Utility is a Streamlit demo for AI-Assisted PM interviews. It productiz
 - Estimates a depth map with `depth-anything/Depth-Anything-V2-Small-hf`.
 - Builds a depth-aware subject extraction using automatic depth thresholding plus Scharr gradient refinement.
 - Generates a portrait bokeh output by preserving the foreground subject and blurring background depth layers.
+- Provides interactive controls for subject extraction strength, bokeh strength, and fast/refined processing mode.
 - Produces a subject-focused caption through the caption provider boundary, with a deterministic fallback for the MVP.
 - Runs image classification with a HuggingFace image-classification model and a graceful fallback.
 - Provides downloads for generated depth map, extracted subject, and portrait bokeh images.

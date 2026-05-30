@@ -24,10 +24,11 @@ def run_image_pipeline(
     caption_provider: str = "fallback",
     subject_strength: int = 60,
     bokeh_strength: int = 12,
+    max_side: int = 768,
     depth_fn: DepthFn = estimate_depth,
     classify_fn: ClassifyFn = classify_image,
 ) -> PipelineResult:
-    original = resize_for_inference(ensure_rgb(image))
+    original = resize_for_inference(ensure_rgb(image), max_side=max_side)
     errors: list[str] = []
 
     depth_array: np.ndarray | None = None

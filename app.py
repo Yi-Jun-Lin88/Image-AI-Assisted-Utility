@@ -13,9 +13,17 @@ from pipeline.orchestrator import run_image_pipeline
 from pipeline.types import PipelineResult
 
 
-st.set_page_config(page_title="Image AI Utility", layout="wide")
+st.set_page_config(
+    page_title="Image AI Utility",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
 
 SAMPLE_IMAGE_PATH = Path(__file__).parent / "sample_data" / "sample.jpg"
+PROCESSING_MODES = {
+    "Fast preview": 512,
+    "Refined output": 1024,
+}
 
 
 def load_uploaded_image() -> Image.Image | None:
@@ -146,49 +154,60 @@ with control_columns[1]:
         value=12,
         help="Higher values create stronger background blur.",
     )
+processing_mode = st.segmented_control(
+    "Processing mode",
+    options=list(PROCESSING_MODES.keys()),
+    default="Fast preview",
+    help="Fast preview favors speed. Refined output processes a larger image for cleaner results.",
+)
+if processing_mode is None:
+    processing_mode = "Fast preview"
+max_side = PROCESSING_MODES[processing_mode]
 
 image_fingerprint = sha256(image_to_png_bytes(input_image)).hexdigest()
-run_key = f"{image_source}:{image_fingerprint}:{bool(api_key)}:{subject_strength}:{bokeh_strength}"
+run_key = f"{image_source}:{image_fingerprint}:{subject_strength}:{bokeh_strength}:{processing_mode}"
 last_key = st.session_state.get("last_run_key")
 result: PipelineResult | None = st.session_state.get("last_result")
 
-run_requested = st.button("Run pipeline", type="primary", use_container_width=True)
-if run_requested:
+refresh_requested = st.button("Refresh output", use_container_width=True)
+if refresh_requested or result is None or last_key != run_key:
     with st.spinner("Running image pipeline..."):
         result = run_image_pipeline(
             input_image,
             api_key=api_key or None,
             subject_strength=subject_strength,
             bokeh_strength=bokeh_strength,
+            max_side=max_side,
         )
     st.session_state["last_result"] = result
     st.session_state["last_run_key"] = run_key
     last_key = run_key
 
 if result is None:
-    st.warning("Run the pipeline to generate outputs.")
+    st.warning("Preparing outputs.")
     st.stop()
 
-if last_key != run_key:
-    st.info("Input settings changed. Click Run pipeline to refresh the outputs.")
+st.caption(f"Processed in {processing_mode} mode at max side {max_side}px.")
 
-top_columns = st.columns(3)
-with top_columns[0]:
+image_row_one = st.columns(2)
+with image_row_one[0]:
     show_image_slot("Original", result.original)
-with top_columns[1]:
+with image_row_one[1]:
     show_image_slot("Depth Map", result.depth_map)
     show_download("Download depth map", result.depth_map, "depth-map.png")
-with top_columns[2]:
+
+image_row_two = st.columns(2)
+with image_row_two[0]:
     show_image_slot("Depth-Aware Subject", result.subject)
     show_download("Download subject", result.subject, "depth-aware-subject.png")
-
-second_columns = st.columns(3)
-with second_columns[0]:
+with image_row_two[1]:
     show_image_slot("Portrait Bokeh", result.bokeh)
     show_download("Download portrait bokeh", result.bokeh, "portrait-bokeh.png")
-with second_columns[1]:
+
+text_columns = st.columns(2)
+with text_columns[0]:
     show_caption(result)
-with second_columns[2]:
+with text_columns[1]:
     show_classification(result)
 
 show_processing_notes(result.errors)
