@@ -1,14 +1,13 @@
 from __future__ import annotations
 
 import os
-from io import BytesIO
 from hashlib import sha256
 from pathlib import Path
 
 import streamlit as st
 from PIL import Image
 
-from pipeline.image_io import image_to_png_bytes
+from pipeline.image_io import image_to_png_bytes, read_image_bytes
 from pipeline.orchestrator import run_image_pipeline
 from pipeline.types import PipelineResult
 
@@ -35,10 +34,9 @@ def load_uploaded_image() -> Image.Image | None:
         return None
 
     try:
-        data = BytesIO(uploaded_file.getvalue())
-        return Image.open(data).copy()
-    except Exception as exc:
-        st.error(f"Could not read image: {exc}")
+        return read_image_bytes(uploaded_file.getvalue(), file_name=uploaded_file.name)
+    except ValueError as exc:
+        st.error(str(exc))
         return None
 
 

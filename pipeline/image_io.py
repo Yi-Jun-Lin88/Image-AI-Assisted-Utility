@@ -2,7 +2,23 @@ from __future__ import annotations
 
 from io import BytesIO
 
-from PIL import Image
+from PIL import Image, ImageOps, UnidentifiedImageError
+
+
+def read_image_bytes(data: bytes, *, file_name: str = "uploaded file") -> Image.Image:
+    if not data:
+        raise ValueError(f"{file_name} is empty. Please choose a non-empty image file.")
+
+    try:
+        with Image.open(BytesIO(data)) as image:
+            image.load()
+            return ImageOps.exif_transpose(image).copy()
+    except UnidentifiedImageError as exc:
+        raise ValueError(
+            f"{file_name} is not a valid image. Please upload a PNG, JPG, JPEG, or WEBP file."
+        ) from exc
+    except OSError as exc:
+        raise ValueError(f"{file_name} could not be decoded. Please try exporting it again.") from exc
 
 
 def ensure_rgb(image: Image.Image) -> Image.Image:
