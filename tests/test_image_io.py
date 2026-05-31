@@ -1,9 +1,11 @@
+import pytest
 from PIL import Image
 
 from pipeline.image_io import (
     SUPPORTED_UPLOAD_TYPES,
     ensure_rgb,
     image_to_png_bytes,
+    read_image_bytes,
     resize_for_inference,
 )
 
@@ -43,3 +45,20 @@ def test_image_to_png_bytes_exports_png(sample_rgb_image: Image.Image) -> None:
     data = image_to_png_bytes(sample_rgb_image)
     assert data.startswith(b"\x89PNG")
     assert len(data) > 50
+
+
+def test_read_image_bytes_loads_supported_image(sample_rgb_image: Image.Image) -> None:
+    data = image_to_png_bytes(sample_rgb_image)
+    result = read_image_bytes(data, file_name="sample.png")
+    assert result.mode == "RGB"
+    assert result.size == sample_rgb_image.size
+
+
+def test_read_image_bytes_rejects_empty_upload() -> None:
+    with pytest.raises(ValueError, match="empty"):
+        read_image_bytes(b"", file_name="empty.png")
+
+
+def test_read_image_bytes_rejects_non_image_bytes() -> None:
+    with pytest.raises(ValueError, match="valid image"):
+        read_image_bytes(b"this is not image data", file_name="fake.png")
